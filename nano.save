@@ -1,0 +1,131 @@
+Create table tblCustomer(    
+    CustomerId int IDENTITY(1,1) NOT NULL,    
+    Name varchar(20) NOT NULL,        
+    Department varchar(20) NOT NULL,    
+    CID varchar(20) NOT NULL PRIMARY KEY,
+      
+)
+------------------------------------------------------------------------------------------------------------------------------------------------
+Create table tblCustomerCalls(    
+    CustomerCallsId int IDENTITY(1,1)  NOT NULL PRIMARY KEY,        
+    Calls varchar(20) NOT NULL,    
+    CID varchar(20) FOREIGN KEY REFERENCES tblCustomer(CID)   
+)
+------------------------------------------------------------------------------------------------------------------------------------------------
+Create procedure spAddCustomer     
+(    
+    
+    @Name VARCHAR(20),             
+    @Department VARCHAR(20),
+    @Calls VARCHAR(20),
+    @CID varchar(20)       
+)    
+as     
+Begin     
+    Insert into tblCustomer (Name, Department,CID)     
+    Values (@Name, @Department,@CID)
+    Insert into tblCustomerCalls (Calls, CID)     
+    Values (@Calls, @CID)
+    Insert into tblCallsID (CID)     
+    Values (@CID)	     
+End
+------------------------------------------------------------------------------------------------------------------------------------------------
+Create procedure spAddCalls 
+(    
+
+    @Calls VARCHAR(20),
+    @CID varchar(20)       
+)    
+as     
+Begin
+    
+    	ALTER TABLE tblCustomerCalls NOCHECK CONSTRAINT ALL     
+    
+   
+    	Insert into tblCustomerCalls (Calls, CID) Values (@Calls, @CID)
+
+	ALTER TABLE tblCustomerCalls WITH CHECK CHECK CONSTRAINT ALL     
+End
+------------------------------------------------------------------------------------------------------------------------------------------------
+Create procedure spDeleteCustomerCalls     
+(      
+   @CusId int,
+   @CID varchar(20),
+   @Calls varchar(20)      
+)      
+as       
+begin 
+DECLARE @CusclsId int;
+
+SET @CusclsId = (Select CustomerCallsId FROM tblCustomerCalls where CID = @CID AND Calls = @Calls);
+
+
+DELETE FROM tblCustomerCalls 
+	WHERE CustomerCallsId = @CusclsId;      
+End
+------------------------------------------------------------------------------------------------------------------------------------------------
+Create procedure spDeleteCustomer     
+(    
+  @CusId int
+         
+)      
+as       
+begin
+
+DECLARE @cid VARCHAR(10);
+
+SET @cid = (Select CID FROM tblCustomer where CustomerId = @CusId);
+DELETE FROM child FROM tblCustomerCalls AS child INNER JOIN tblCustomer AS parent ON child.CID = parent.CID WHERE child.CID = @cid;
+
+DELETE FROM parent
+FROM tblCustomer AS parent
+WHERE parent.CID = @cid; 
+        
+End
+------------------------------------------------------------------------------------------------------------------------------------------------
+Create procedure spUpdateCustomer      
+(      
+   @CusId INTEGER ,
+   @CusclsId INTEGER,    
+   @Name VARCHAR(20),         
+   @Department VARCHAR(20),    
+   @CID VARCHAR(10),
+   @Calls VARCHAR(20)    
+)      
+as      
+begin
+   
+   Update tblCustomerCalls set Calls=@Calls, CID=@CID where CustomerCallsId=@CusId;      
+   Update tblCustomer set Name=@Name, Department=@Department where CustomerId=@CusId
+          
+End
+------------------------------------------------------------------------------------------------------------------------------------------------
+Create procedure spUpdateCalls      
+(      
+  
+   @CusId INTEGER ,
+   @CusclsId INTEGER,
+   @Calls VARCHAR(20)    
+)      
+as      
+begin 
+   
+   SET @cid = (Select CID FROM tblCustomer where CustomerId = @CusId);      
+   Update tblCustomerCalls set Calls=@Calls where CustomerCallsId=@CusclsId;       
+End
+------------------------------------------------------------------------------------------------------------------------------------------------
+Create procedure spGetAllCustomer    
+as    
+Begin    
+    
+ SELECT * FROM tblCustomerCalls,tblCustomer WHERE tblCustomerCalls.CID = tblCustomer.CID
+End
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+Create procedure spGetTenCustomer    
+as    
+Begin    
+    
+ SELECT TOP 10 * FROM tblCustomerCalls,tblCustomer WHERE tblCustomerCalls.CID = tblCustomer.CID 
+End
+
